@@ -1,0 +1,90 @@
+// script.js
+
+// Vigenère Cipher Encryption
+function vigenereEncrypt(text, key) {
+    let result = "";
+    key = key.toUpperCase().repeat(Math.ceil(text.length / key.length));
+    for (let i = 0; i < text.length; i++) {
+        let textChar = text.charCodeAt(i);
+        let keyChar = key.charCodeAt(i % key.length);
+        if (textChar >= 65 && textChar <= 90) { // A-Z
+            let encryptedChar = (textChar - 65 + keyChar - 65) % 26 + 65;
+            result += String.fromCharCode(encryptedChar);
+        } else {
+            result += text[i]; // Non-alphabetic characters remain unchanged
+        }
+    }
+    return result;
+}
+
+// Columnar Transposition Cipher
+function transpositionEncrypt(text, key) {
+    let columns = key.length;
+    let rows = Math.ceil(text.length / columns);
+    let matrix = Array.from({ length: rows }, () => Array(columns).fill(''));
+    
+    for (let i = 0; i < text.length; i++) {
+        let row = Math.floor(i / columns);
+        let col = i % columns;
+        matrix[row][col] = text[i];
+    }
+    
+    let result = "";
+    for (let colIndex = 0; colIndex < key.length; colIndex++) {
+        let col = key.charCodeAt(colIndex) - 65;
+        for (let row = 0; row < rows; row++) {
+            if (matrix[row][col]) {
+                result += matrix[row][col];
+            }
+        }
+    }
+    return result;
+}
+
+// Mathematical Transformation
+function mathematicalTransform(text, key) {
+    let result = "";
+    for (let i = 0; i < text.length; i++) {
+        let shift = key.charCodeAt(i % key.length) % 256;
+        let transformedChar = String.fromCharCode((text.charCodeAt(i) + shift) % 256);
+        result += transformedChar;
+    }
+    return result;
+}
+
+// Simple Hash (for example purposes)
+function simpleHash(text) {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+        hash = (hash << 5) - hash + text.charCodeAt(i);
+        hash |= 0; // Convert to 32-bit integer
+    }
+    return hash.toString(16);
+}
+
+// Final Encryption Function
+function complexEncrypt(text, key) {
+    let layer1 = vigenereEncrypt(text.toUpperCase(), key);
+    let layer2 = transpositionEncrypt(layer1, key);
+    let layer3 = mathematicalTransform(layer2, key);
+    let layer4 = vigenereEncrypt(layer3, key);
+    let finalHash = simpleHash(layer4);
+    return layer4 + finalHash;
+}
+
+// Event Listener for Encryption
+function encryptText() {
+    let inputText = document.getElementById("inputText").value;
+    let key = document.getElementById("key").value;
+    if (key.length === 0) {
+        alert("Please enter an encryption key.");
+        return;
+    }
+    let encryptedText = complexEncrypt(inputText, key);
+    document.getElementById("outputText").value = encryptedText;
+}
+
+// Add event listener to the button
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelector("button").addEventListener("click", encryptText);
+});
